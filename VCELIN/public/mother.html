@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mothers CR</title>
+
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f7f7f7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    h1 {
+        color: #333;
+        margin-top: 20px;
+    }
+
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        margin-bottom: 20px;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus {
+        border-color: #007BFF;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+    #results {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: auto;
+        min-height: 100px;
+        margin-top: 20px;
+        text-align: left;
+        overflow-y: auto;
+        max-height: 200px;
+    }
+
+    #loadButton {
+        padding: 10px 20px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-bottom: 20px;
+        width: 150px;
+    }
+
+    #loadButton:hover {
+        background-color: #218838;
+    }
+
+    #loadButton:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+    }
+</style>
+</head>
+
+<body>
+<form id="motherForm">
+    <input type="number" id="mother_id" placeholder="Id">
+    <input type="text" id="mother_origin" placeholder="Origin">
+    <input type="number" id="mother_year" placeholder="Year">
+    <input type="text" id="mother_notes" placeholder="Notes">
+    <input type="number" id="mother_hive_id" placeholder="Hive">
+    <button type="submit">Submit</button>
+</form>
+<h1>Read All Records</h1>
+
+<button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+<div id="results"></div>
+<script>
+    document.getElementById("motherForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        let mother_id = document.getElementById("mother_id").value;
+        let mother_origin = document.getElementById("mother_origin").value;
+        let mother_year = document.getElementById("mother_year").value;
+        let mother_notes = document.getElementById("mother_notes").value;
+        let mother_hive_id = document.getElementById("mother_hive_id").value;
+
+        fetch("/api/mothers", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                mother_id: mother_id,
+                mother_origin: mother_origin,
+                mother_year: mother_year,
+                mother_notes: mother_notes,
+                mother_hive_id: mother_hive_id
+            })
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error("Error:", error));
+    });
+</script>
+<script>
+    function loadRecords() {
+        // Fetch all records from the server
+        fetch('/api/mothers')
+            .then(response => response.json())
+            .then(data => {
+                // Clear previous results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+
+                // Display all records
+                data.forEach(record => {
+                    // Create a div for each record
+                    const recordDiv = document.createElement('div');
+                    recordDiv.textContent = `Mother ID: ${record.mother_id}, Origin: ${record.mother_origin}, Year: ${record.mother_year}, Notes: ${record.mother_notes}, Hive: ${record.mother_hive_id}`;
+
+                    // Add event listener for right-click (context menu)
+                    recordDiv.addEventListener('contextmenu', (event) => {
+                        event.preventDefault(); // Prevent default context menu
+                        const confirmDelete = confirm(`Opravdu chcete smazat záznam s ID ${record.mother_id}?`);
+                        if (confirmDelete) {
+                            deleteRecord(record.mother_id); // Call the delete function
+                        }
+                    });
+
+                    // Append record to the results div
+                    resultsDiv.appendChild(recordDiv);
+                });
+
+            })
+            .catch(error => {
+                console.error('Error fetching records:', error);
+            });
+    }
+
+    // Function to delete a record
+    function deleteRecord(mother_id) {
+        // Call the API to delete the record
+        fetch(`/api/mothers/${mother_id}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Záznam s ID ${mother_id} byl úspěšně smazán.`);
+                    loadRecords(); // Reload records after deletion
+                } else {
+                    alert('Došlo k chybě při mazání záznamu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting record:', error);
+            });
+    }
+</script>
+
+</body>
+</html>

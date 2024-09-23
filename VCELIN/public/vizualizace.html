@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hive Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .hive-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .hive {
+            width: 100px;
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        .box {
+            width: 80px;
+            height: 30px;
+            background-color: #f2c94c;
+            margin: 5px auto;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hive Visualization</h1>
+
+    <div class="hive-container" id="hiveContainer">
+        <!-- Úly se zobrazí zde -->
+    </div>
+
+    <script>
+        // Načtení dat o úlech z backendu
+        function loadHivesWithBoxes() {
+            fetch('/api/hivesWithBoxCount')
+                .then(response => response.json())
+                .then(data => {
+                    const hiveContainer = document.getElementById("hiveContainer");
+                    hiveContainer.innerHTML = '';  // Vymaže předchozí obsah
+
+                    data.forEach(hive => {
+                        const hiveDiv = document.createElement('div');
+                        hiveDiv.className = 'hive';
+                        hiveDiv.innerHTML = `<strong>${hive.hive_name}</strong><br>Year: ${hive.hive_year}`;
+
+                        // Vytvoření boxů
+                        for (let i = 0; i < hive.box_count; i++) {
+                            const boxDiv = document.createElement('div');
+                            boxDiv.className = 'box';
+                            hiveDiv.appendChild(boxDiv);
+                        }
+
+                        hiveContainer.appendChild(hiveDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching hives:', error));
+        }
+
+        // Načti data při načtení stránky
+        window.onload = function () {
+            loadHivesWithBoxes();
+        };
+    </script>
+
+</body>
+</html>

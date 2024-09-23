@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Boxes to a Hive</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .box,
+        .hive {
+            width: 48%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-sizing: border-box;
+            min-height: 300px;
+        }
+
+        .box h3,
+        .hive h3 {
+            margin-top: 0;
+        }
+
+        .list {
+            margin-top: 10px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Create and Assign Hives</h1>
+
+    <!-- Formulář pro vytvoření nového úlu -->
+    <form id="hiveForm">
+        <label for="hive_id">Hive ID:</label>
+        <input type="text" id="hive_id" placeholder="Enter Hive ID" required>
+
+        <label for="hive_year">Hive Year:</label>
+        <input type="number" id="hive_year" placeholder="Enter Hive Year" required>
+
+        <label for="hive_name">Hive Name:</label>
+        <input type="text" id="hive_name" placeholder="Enter Hive Name" required>
+
+        <button type="submit">Create Hive</button>
+    </form>
+
+    <!-- Kontejner pro boxy a hives vedle sebe -->
+    <div class="container">
+        <div class="box">
+            <h3>Available Boxes</h3>
+            <div class="list" id="boxesList">
+                <!-- Boxes se vypíší zde (s checkboxy) -->
+            </div>
+        </div>
+
+        <div class="hive">
+            <h3>Select Hive</h3>
+            <div class="list" id="hivesList">
+                <!-- Hives se vypíší zde (s radio buttony) -->
+            </div>
+        </div>
+    </div>
+
+    <br>
+    <button id="assignButton">Assign Boxes to Hive</button>
+
+    <script>
+        // Event listener pro vytvoření úlu
+        document.getElementById("hiveForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let hive_id = document.getElementById("hive_id").value;
+            let hive_year = document.getElementById("hive_year").value;
+            let hive_name = document.getElementById("hive_name").value;
+
+            // Odeslání nového úlu na backend (API call na server)
+            fetch("/api/hives", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    hive_id: hive_id,
+                    hive_year: hive_year,
+                    hive_name: hive_name
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Hive created:", data);
+                    loadHivesWithBoxes();  // Znovu načteme seznam úlů
+                })
+                .catch(error => console.error("Error creating hive:", error));
+        });
+
+
+        // Načtení boxes
+        function loadBoxes() {
+            fetch('/api/boxes')
+                .then(response => response.json())
+                .then(data => {
+                    const boxesList = document.getElementById("boxesList");
+                    boxesList.innerHTML = '';  // Vymaže předchozí výsledky
+
+                    data.forEach(box => {
+                        // Zkontroluj, jestli je box_hive_id null (nebo undefined)
+                        if (box.box_hive_id === null) {
+                            const boxDiv = document.createElement('div');
+
+                            // Vytvoření checkboxu pro každý box
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = box.box_id;
+
+                            boxDiv.appendChild(checkbox);
+                            boxDiv.appendChild(document.createTextNode(
+                                `Box ID: ${box.box_id}, Type: ${box.box_type}, Year: ${box.box_year}, Hive: None`
+                            ));
+                            boxesList.appendChild(boxDiv);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching boxes:', error));
+        }
+
+        // Načtení hives s přiřazenými boxy
+        function loadHivesWithBoxes() {
+            fetch('/api/hivesWithBoxes')
+                .then(response => response.json())
+                .then(data => {
+                    const hivesList = document.getElementById("hivesList");
+                    hivesList.innerHTML = '';  // Vymaže předchozí výsledky
+
+                    data.forEach(hive => {
+                        const hiveDiv = document.createElement('div');
+
+                        // Vytvoření radio buttonu pro každý hive
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = 'selectedHive';
+                        radio.value = hive.hive_id;
+
+                        hiveDiv.appendChild(radio);
+                        hiveDiv.appendChild(document.createTextNode(
+                            `Hive ID: ${hive.hive_id}, Name: ${hive.hive_name}, Year: ${hive.hive_year}`
+                        ));
+
+                        // Vytvoření seznamu přiřazených boxů
+                        if (hive.boxes && hive.boxes.length > 0) {
+                            const boxesList = document.createElement('ul');
+                            hive.boxes.forEach(box => {
+                                // Podmínka: vykresli box pouze, pokud má hodnotu box_id
+                                if (box.box_id !== null) {
+                                    const boxItem = document.createElement('li');
+                                    boxItem.textContent = `Box ID: ${box.box_id}, Type: ${box.box_type}, Year: ${box.box_year}`;
+                                    boxesList.appendChild(boxItem);
+                                }
+                            });
+                            hiveDiv.appendChild(boxesList);
+                        } else {
+                            const noBoxes = document.createElement('p');
+                            noBoxes.textContent = 'No boxes assigned to this hive.';
+                            hiveDiv.appendChild(noBoxes);
+                        }
+
+                        hivesList.appendChild(hiveDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching hives with boxes:', error));
+        }
+
+
+        // Získání označených boxů
+        function getSelectedBoxes() {
+            const checkboxes = document.querySelectorAll('#boxesList input[type="checkbox"]:checked');
+            let selectedBoxes = [];
+
+            checkboxes.forEach(checkbox => {
+                selectedBoxes.push(checkbox.value);  // Ulož ID vybraného boxu
+            });
+
+            return selectedBoxes;
+        }
+
+        // Získání vybraného úlu
+        function getSelectedHive() {
+            const radioButtons = document.querySelectorAll('#hivesList input[type="radio"]:checked');
+            if (radioButtons.length > 0) {
+                return radioButtons[0].value;  // Vrátí ID vybraného úlu
+            } else {
+                return null;
+            }
+        }
+
+        // Event listener pro přiřazení boxů k úlu
+        document.getElementById("assignButton").addEventListener("click", function () {
+            const selectedBoxes = getSelectedBoxes();
+            const selectedHive = getSelectedHive();
+
+            if (selectedBoxes.length === 0 || !selectedHive) {
+                alert("Please select at least one box and one hive.");
+                return;
+            }
+
+            // Získání počtu přiřazených boxů pro vybraný úl
+            fetch(`/api/hiveBoxCount/${selectedHive}`)
+                .then(response => response.json())
+                .then(data => {
+                    const currentBoxCount = parseInt(data.box_count);
+                    const totalBoxCount = currentBoxCount + selectedBoxes.length;
+
+                    // Kontrola, zda nebude překročen limit 5 boxů
+                    if (totalBoxCount > 5) {
+                        alert("This hive cannot have more than 5 boxes.");
+                        return;  // Přerušení operace
+                    }
+
+                    // Pokud je vše v pořádku, odeslání vybraných boxů a úlu na backend
+                    fetch('/api/assignBoxesToHive', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            boxes: selectedBoxes,
+                            hive_id: selectedHive
+                        })
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                alert("Boxes successfully assigned to hive.");
+                                loadBoxes(); // Aktualizuje seznam boxů
+                                loadHivesWithBoxes();  
+                            } else {
+                                alert("Error assigning boxes to hive.");
+                            }
+                        })
+                        .catch(error => console.error('Error assigning boxes to hive:', error));
+                })
+                .catch(error => console.error('Error fetching box count:', error));
+        });
+
+        // Načtení dat při načtení stránky
+        window.onload = function () {
+            loadBoxes();
+            loadHivesWithBoxes();
+        };
+    </script>
+
+</body>
+
+</html>
