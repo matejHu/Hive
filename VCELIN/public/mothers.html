@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/mothers.css">
+    <title>Mothers CRD</title>
+
+</head>
+
+</head>
+
+<body>
+    <form id="motherForm">
+
+        <label for="mother_origin">Mother Origin:</label>
+        <select id="mother_origin" required>
+            <option value="" disabled selected>Select origin</option>
+            <option value="Výzkumný ústav">Výzkumný ústav</option>
+            <option value="Roj">Roj</option>
+            <option value="Vychovaná doma">Vychovaná doma</option>
+            <option value="Nákup od chovatele">Nákup od chovatele</option>
+        </select>
+
+        <label for="mother_year">Year:</label>
+        <input type="number" id="mother_year" placeholder="Year" min="2000">
+
+        <label for="mother_notes">Notes:</label>
+        <input type="text" id="mother_notes" placeholder="Notes" maxlength="200">
+
+        <label for="mother_hive_id">Hive:</label>
+        <select id="mother_hive_id">
+            <option value="" disabled selected>Select Hive</option>
+            <!-- Dynamicky se sem vloží data z databáze -->
+        </select>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <h1>Read All Records</h1>
+
+    <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById("motherForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let mother_origin = document.getElementById("mother_origin").value;
+            let mother_year = document.getElementById("mother_year").value;
+            let mother_notes = document.getElementById("mother_notes").value;
+            let mother_hive_id = document.getElementById("mother_hive_id").value;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const hiveId = urlParams.get('hive_id');
+            const motherId = urlParams.get('mother_id');
+
+            if (!motherId && !mother_hive_id) {
+                submitForm(hiveId, mother_origin, mother_year, mother_notes, mother_hive_id);
+            } else if (!motherId) {  // Přidává se nová matka
+                checkMothersCount(mother_hive_id).then(canProceed => {
+                    if (canProceed) {
+                        submitForm(motherId, mother_origin, mother_year, mother_notes, mother_hive_id);
+                    }
+                }).catch(error => console.error("Error checking mothers count:", error));
+            } else {  // Úprava existující matky
+                submitForm(motherId, mother_origin, mother_year, mother_notes, mother_hive_id);
+            }
+        });
+
+        function checkMothersCount(selectedHive) {
+            return fetch(`/api/hiveMothersCount/${selectedHive}`)
+                .then(response => response.json())
+                .then(data => {
+                    const currentMotherCount = parseInt(data.mothers_count);
+
+                    // Kontrola, zda nebude překročen limit 1 mother
+                    if (currentMotherCount >= 1) {
+                        alert("This hive cannot have more than 1 mother.");
+                        return false;  // Nepovolit přidání new mother
+                    }
+
+                    return true;  // Povolit přidání new mother
+                })
+                .catch(error => {
+                    console.error("Error fetching hive mother count:", error);
+                    return false;  // Přerušit operaci při chybě
+                });
+        }
+
+        function submitForm(motherId, mother_origin, mother_year, mother_notes, mother_hive_id) {
+            const url = motherId ? `/api/mothers/${motherId}` : "/api/mothers";
+            const method = motherId ? "PUT" : "POST";
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    mother_origin: mother_origin,
+                    mother_year: mother_year,
+                    mother_notes: mother_notes,
+                    mother_hive_id: mother_hive_id
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    window.loadRecords();
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        function loadHivesForForm(selectedHiveId = null) {
+            return fetch('/api/hives')
+                .then(response => response.json())
+                .then(data => {
+                    const hiveSelect = document.getElementById('mother_hive_id');
+                    hiveSelect.innerHTML = '<option value="" disabled selected>Select Hive</option>'; // Resetování
+
+                    data.forEach(hive => {
+                        const option = document.createElement('option');
+                        option.value = hive.hive_id;
+                        option.textContent = `Hive ${hive.hive_id}`;
+                        // Používáme volné porovnání == kvůli možnému rozdílu v typech (např. číslo a string)
+                        if (selectedHiveId && selectedHiveId == hive.hive_id) {
+                            option.selected = true; // Nastavení vybraného úlu
+                        }
+                        hiveSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading hives:', error));
+        }
+
+        function loadRecords() {
+            fetch('/api/mothers')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    data.forEach(record => {
+                        const recordDiv = document.createElement('div');
+                        recordDiv.textContent = `Mother ID: ${record.mother_id}, Origin: ${record.mother_origin}, Year: ${record.mother_year}, Notes: ${record.mother_notes}, Hive: ${record.mother_hive_id}`;
+
+                        recordDiv.addEventListener('contextmenu', (event) => {
+                            event.preventDefault();
+                            const confirmDelete = confirm(`Opravdu chcete smazat záznam s ID ${record.mother_id}?`);
+                            if (confirmDelete) {
+                                deleteRecord(record.mother_id);
+                            }
+                        });
+
+                        resultsDiv.appendChild(recordDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching records:', error));
+        }
+
+        function deleteRecord(mother_id) {
+            fetch(`/api/mothers/${mother_id}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`Záznam s ID ${mother_id} byl úspěšně smazán.`);
+                        loadRecords();
+                    } else {
+                        alert('Došlo k chybě při mazání záznamu.');
+                    }
+                })
+                .catch(error => console.error('Error deleting record:', error));
+        }
+
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hiveId = urlParams.get('hive_id');
+            const motherId = urlParams.get('mother_id');
+
+            if (hiveId) {
+                loadHivesForForm(hiveId);
+            }
+            if (motherId) {
+                loadMotherData(motherId);
+            }
+        };
+
+        function loadMotherData(motherId) {
+            fetch(`/api/mothers/${motherId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('mother_origin').value = data.mother_origin;
+                        document.getElementById('mother_year').value = data.mother_year;
+                        document.getElementById('mother_notes').value = data.mother_notes;
+
+                        loadHivesForForm(data.mother_hive_id);
+                        document.title = `Mother ${motherId} update`;
+                    }
+                })
+                .catch(error => console.error("Chyba při načítání dat o mother:", error));
+        }
+    </script>
+
+</body>
+
+</html>

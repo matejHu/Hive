@@ -1,53 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/vizualizace.css">
     <title>Hive Visualization</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        .hive-container {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            justify-content: flex-start;
-            gap: 10px;
-        }
-
-        .hive {
-            width: 100px;
-            border: 1px solid #000;
-            padding: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column-reverse;
-        }
-
-        .box {
-            width: 80px;
-            height: 30px;
-            background-color: #f2c94c;
-            margin: 5px auto;
-            border: 1px solid #000;
-        }
-    </style>
+    
 </head>
+
 <body>
 
     <h1>Hive Visualization</h1>
+
+    <a href="assignBoxes.html" target="_blank">Assign boxes to hives</a>
+    <a href="hives.html" target="_blank">Create new hive</a>
+    <a href="boxUpdate.html" target="_blank">Create new box</a>
 
     <div class="hive-container" id="hiveContainer">
         <!-- Úly se zobrazí zde -->
     </div>
 
+    <!-- Kontextová nabídka pro úly -->
+    <div id="hiveContextMenu" class="context-menu">
+        <a href="#" target="_blank" id="addCheckupLink">Přidat checkup</a>
+        <a href="#" target="_blank" id="addMotherLink">Přidat mother</a>
+        <a href="#" target="_blank" id="addBoxLink">Přidat box</a>
+        <a href="#" target="_blank" id="hiveDetails">Zobrazit detaily</a>
+        <a href="#" target="_blank" id="hiveUpdate">Upravit data</a>
+        <a href="#" target="_blank" id="hiveCheckups">Záznamy kontrol</a>
+        <a href="#" id="hiveDelete">Smazat úl</a>
+    </div>
+
+    <!-- Kontextová nabídka pro boxy -->
+    <div id="boxContextMenu" class="context-menu">
+        <a href="#" target="_blank" id="boxDetailsLink">Zobrazit detaily</a>
+        <a href="#" target="_blank" id="moveBoxLink">Přesunout box</a>
+        <a href="#" target="_blank" id="deleteBoxLink">Smazat box</a>
+        <a href="#" target="_blank" id="productionRecord">Záznam produkce</a>
+        <a href="#" target="_blank" id="boxUpdate">Upravit data</a>
+    </div>
+
+    <!-- Kontextová nabídka pro boxy -->
+    <div id="motherContextMenu" class="context-menu">
+        <a href="#" target="_blank" id="motherDetails">Zobrazit detaily</a>
+        <a href="#" target="_blank" id="updateMother">Upravit data</a>
+        <a href="#" target="_blank" id="deleteMother">Smazat mother</a>
+    </div>
+
     <script>
-        // Načtení dat o úlech z backendu
+
+        // Funkce pro skrytí všech kontextových nabídek
+        function hideAllContextMenus() {
+            const hiveContextMenu = document.getElementById("hiveContextMenu");
+            const boxContextMenu = document.getElementById("boxContextMenu");
+            const motherContextMenu = document.getElementById("motherContextMenu");
+
+            hiveContextMenu.style.display = 'none';
+            boxContextMenu.style.display = 'none';
+            motherContextMenu.style.display = 'none';
+        }
+
         function loadHivesWithBoxes() {
-            fetch('/api/hivesWithBoxCount')
+            fetch('/api/hivesWithBoxes')
                 .then(response => response.json())
                 .then(data => {
                     const hiveContainer = document.getElementById("hiveContainer");
@@ -57,25 +72,173 @@
                         const hiveDiv = document.createElement('div');
                         hiveDiv.className = 'hive';
                         hiveDiv.innerHTML = `<strong>${hive.hive_name}</strong><br>Year: ${hive.hive_year}`;
+                        hiveDiv.dataset.hiveId = hive.hive_id;  // Uložení ID úlu
 
                         // Vytvoření boxů
-                        for (let i = 0; i < hive.box_count; i++) {
-                            const boxDiv = document.createElement('div');
-                            boxDiv.className = 'box';
-                            hiveDiv.appendChild(boxDiv);
+                        if (hive.boxes.length > 0) {
+                            hive.boxes.forEach(box => {
+                                if (box.box_id !== null && box.box_id !== undefined) {
+                                    const boxDiv = document.createElement('div');
+                                    boxDiv.className = 'box';
+                                    boxDiv.textContent = `ID: ${box.box_id}`;
+                                    boxDiv.dataset.boxId = box.box_id;  // Uložení ID boxu
+                                    hiveDiv.appendChild(boxDiv);
+
+                                    // Kontextová nabídka po kliknutí pravým tlačítkem na box
+                                    boxDiv.addEventListener('contextmenu', function (event) {
+                                        event.preventDefault();  // Zabraň výchozí kontextové nabídce
+                                        event.stopPropagation();
+
+                                        // Skryj všechny ostatní kontextové nabídky
+                                        hideAllContextMenus();
+
+                                        const boxContextMenu = document.getElementById("boxContextMenu");
+                                        const boxDetailsLink = document.getElementById("boxDetailsLink");
+                                        const moveBoxLink = document.getElementById("moveBoxLink");
+                                        const deleteBoxLink = document.getElementById("deleteBoxLink");
+                                        const addProduction = document.getElementById("productionRecord");
+                                        const updateBox = document.getElementById("boxUpdate");
+
+                                        // Nastavení odkazů pro box s ID boxu
+                                        boxDetailsLink.href = `boxDetail.html?box_id=${box.box_id}`;
+                                        moveBoxLink.href = `moveBox.html?box_id=${box.box_id}`;
+                                        deleteBoxLink.href = `deleteBox.html?box_id=${box.box_id}`;
+                                        addProduction.href = `productionRecord.html?box_id=${box.box_id}`;
+                                        updateBox.href = `boxUpdate.html?box_id=${box.box_id}`;
+
+                                        // Zobrazení kontextové nabídky na pozici myši
+                                        boxContextMenu.style.display = 'block';
+                                        boxContextMenu.style.top = `${event.pageY}px`;
+                                        boxContextMenu.style.left = `${event.pageX}px`;
+                                    });
+                                }
+                            });
                         }
 
+                        // Zobrazení mother_id na konec úlu, pokud je matka přítomna
+                        if (hive.mother_id !== null && hive.mother_id !== undefined) {
+                            const motherDiv = document.createElement('div');
+                            motherDiv.className = 'mother';
+                            motherDiv.textContent = `Mother ID: ${hive.mother_id}`;
+                            hiveDiv.appendChild(motherDiv);
+
+                            // Kontextová nabídka po kliknutí pravým tlačítkem na box
+                            motherDiv.addEventListener('contextmenu', function (event) {
+                                        event.preventDefault();  // Zabraň výchozí kontextové nabídce
+                                        event.stopPropagation();
+
+                                        // Skryj všechny ostatní kontextové nabídky
+                                        hideAllContextMenus();
+
+                                        const motherDetails = document.getElementById("motherDetails");
+                                        const updateMother = document.getElementById("updateMother");
+                                        const deleteMother = document.getElementById("deleteMother");
+
+                                        // Nastavení odkazů pro mother s ID mother
+                                        motherDetails.href = `motherDetails.html?mother_id=${hive.mother_id}`;
+                                        updateMother.href = `mothers.html?mother_id=${hive.mother_id}`;
+                                        deleteMother.href = ``;
+
+
+                                        // Zobrazení kontextové nabídky na pozici myši
+                                        motherContextMenu.style.display = 'block';
+                                        motherContextMenu.style.top = `${event.pageY}px`;
+                                        motherContextMenu.style.left = `${event.pageX}px`;
+                                    });
+                        }
+
+                        // Kontextová nabídka po kliknutí pravým tlačítkem na úl
+                        hiveDiv.addEventListener('contextmenu', function (event) {
+                            event.preventDefault();  // Zabraň výchozí kontextové nabídce
+                            // Skryj všechny ostatní kontextové nabídky
+                            hideAllContextMenus();
+
+                            const hiveContextMenu = document.getElementById("hiveContextMenu");
+                            const addCheckupLink = document.getElementById("addCheckupLink");
+                            const addMotherLink = document.getElementById("addMotherLink");
+                            const addBoxLink = document.getElementById("addBoxLink");
+                            const hiveDetails = document.getElementById("hiveDetails");
+                            const hiveUpdate = document.getElementById("hiveUpdate");
+                            const hiveDelete = document.getElementById("hiveDelete");
+                            const hiveCheckups = document.getElementById("hiveCheckups");
+
+                            // Nastavení odkazů pro přidání checkupu, mother a boxu s ID úlu
+                            addCheckupLink.href = `checkups.html?hive_id=${hive.hive_id}`;
+                            addMotherLink.href = `mothers.html?hive_id=${hive.hive_id}`;
+                            addBoxLink.href = `boxUpdate.html?hive_id=${hive.hive_id}`;
+                            hiveDetails.href = `hiveDetail.html?hive_id=${hive.hive_id}`;
+                            hiveUpdate.href = `hiveUpdate.html?hive_id=${hive.hive_id}`;
+                            hiveCheckups.href = `/api/hives/${hive.hive_id}/checkups`;
+
+                            // Funkce pro zobrazení potvrzovacího dialogu při mazání úlu
+                            hiveDelete.addEventListener('click', function () {
+                                const userConfirmed = confirm(`Opravdu chcete smazat úl s ID ${hive.hive_id}?`);
+
+                                if (userConfirmed) {
+                                    deleteRecord(hive.hive_id);
+
+                                    // Po úspěšném smazání obnovíme stránku
+                                    alert('Úl byl úspěšně smazán.');
+                                    location.reload();  // Obnoví stránku
+
+                                } else {
+                                    alert('Mazání úlu bylo zrušeno.');
+                                }
+                            });
+
+                            // Zobrazení kontextové nabídky na pozici myši
+                            hiveContextMenu.style.display = 'block';
+                            hiveContextMenu.style.top = `${event.pageY}px`;
+                            hiveContextMenu.style.left = `${event.pageX}px`;
+                        });
+
+                        // Přidání úlu do kontejneru
                         hiveContainer.appendChild(hiveDiv);
                     });
                 })
                 .catch(error => console.error('Error fetching hives:', error));
         }
 
+        // Skrytí kontextové nabídky při kliknutí mimo ni
+        document.addEventListener('click', function () {
+            document.getElementById("hiveContextMenu").style.display = 'none';
+            document.getElementById("boxContextMenu").style.display = 'none';
+            document.getElementById("motherContextMenu").style.display = 'none';
+        });
+
         // Načti data při načtení stránky
         window.onload = function () {
             loadHivesWithBoxes();
         };
+
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible") {
+                // Stránka je opět viditelná
+                window.location.reload(); // Automaticky refreshni stránku
+            }
+        });
+
+
+        function deleteRecord(hive_id) {
+            // Call the API to delete the record
+            fetch(`/api/hives/${hive_id}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`Záznam s ID ${hive_id} byl úspěšně smazán.`);
+                        loadRecords(); // Reload records after deletion
+                    } else {
+                        alert('Došlo k chybě při mazání záznamu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting record:', error);
+                });
+        }
+
     </script>
 
 </body>
+
 </html>

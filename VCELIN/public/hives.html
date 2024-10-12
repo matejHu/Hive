@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/hives.css">
+    <title>Hive CRD</title>
+
+</head>
+
+<body>
+    <h1>Hives CRD</h1>
+
+    <!-- Formulář pro vytvoření nového úlu -->
+    <form id="hiveForm">
+        <input type="number" id="hive_year" placeholder="Enter Hive Year" required>
+        <input type="text" id="hive_name" placeholder="Enter Hive Name" required>
+        <button type="submit">Create Hive</button>
+    </form>
+
+    <h1>Read All Hives</h1>
+    <button id="loadButton" onclick="loadHives()">Load All Hives</button>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById("hiveForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+
+            let hive_year = document.getElementById("hive_year").value;
+            let hive_name = document.getElementById("hive_name").value;
+
+            fetch("/api/hives", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    hive_year: hive_year,
+                    hive_name: hive_name
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Vymazání formuláře po odeslání
+                document.getElementById("hiveForm").reset();
+                loadHives();
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+        function loadHives() {
+            fetch('/api/hives')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    data.forEach(record => {
+                        const recordDiv = document.createElement('div');
+                        recordDiv.textContent = `Hive ID: ${record.hive_id}, Year: ${record.hive_year}, Name: ${record.hive_name}`;
+
+                        recordDiv.addEventListener('contextmenu', (event) => {
+                            event.preventDefault();
+                            const confirmDelete = confirm(`Opravdu chcete smazat úl s ID ${record.hive_id}?`);
+                            if (confirmDelete) {
+                                deleteHive(record.hive_id);
+                            }
+                        });
+
+                        resultsDiv.appendChild(recordDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching hives:', error);
+                });
+        }
+
+        function deleteHive(hive_id) {
+            fetch(`/api/hives/${hive_id}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Úl s ID ${hive_id} byl úspěšně smazán.`);
+                    loadHives();
+                } else {
+                    alert('Došlo k chybě při mazání úlu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting hive:', error);
+            });
+        }
+
+        
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin-bottom: 20px;
+        }
+
+        label,
+        select,
+        input[type="date"],
+        input[type="text"],
+        input[type="number"] {
+            display: block;
+            /* Zajišťuje, že každý prvek bude na svém vlastním řádku */
+            width: 100%;
+            /* Aby vstupy a selecty zabíraly 100% šířky */
+            margin-bottom: 15px;
+            /* Mezera mezi jednotlivými prvky */
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select,
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus,
+        input[type="date"]:focus {
+            border-color: #007BFF;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        #results {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: auto;
+            min-height: 100px;
+            margin-top: 20px;
+            text-align: left;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        #loadButton {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+            width: 150px;
+        }
+
+        #loadButton:hover {
+            background-color: #218838;
+        }
+
+        #loadButton:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <form id="boxForm">
+        <label for="box_type">Box Type:</label>
+        <select id="box_type" required>
+            <option value="" disabled selected>Select Box Type</option>
+            <option value="plodiště">Plodiště</option>
+            <option value="medník">Medník</option>
+        </select>
+
+        <label for="box_year">Year:</label>
+        <input type="number" id="box_year" placeholder="Year" min="2000">
+
+        <label for="box_notes">Notes:</label>
+        <input type="text" id="box_notes" placeholder="Notes" maxlength="200">
+
+        <label for="box_hive_id">Hive:</label>
+        <select id="box_hive_id">
+            <option value="" disabled selected>Select Hive</option>
+        </select>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <h1>Read All Records</h1>
+
+    <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById("boxForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+        
+            let box_type = document.getElementById("box_type").value;
+            let box_year = document.getElementById("box_year").value;
+            let box_notes = document.getElementById("box_notes").value;
+            let box_hive_id = document.getElementById("box_hive_id").value;
+        
+            const urlParams = new URLSearchParams(window.location.search);
+            const boxId = urlParams.get('box_id'); // Získání ID boxu z URL
+        
+            // Pokud není box_hive_id vyplněno (např. je null), přeskoč kontrolu počtu boxů
+            if (!box_hive_id) {
+                submitForm(boxId, box_type, box_year, box_notes, box_hive_id);
+            } else {
+                // Před odesláním formuláře zkontrolujeme počet boxů pro vybraný úl
+                checkBoxCount(box_hive_id).then(canProceed => {
+                    if (canProceed) {
+                        submitForm(boxId, box_type, box_year, box_notes, box_hive_id);
+                    }
+                }).catch(error => console.error("Error checking box count:", error));
+            }
+        });
+    
+        // Funkce pro kontrolu počtu přiřazených boxů pro vybraný úl
+        function checkBoxCount(selectedHive) {
+            return fetch(`/api/hiveBoxCount/${selectedHive}`)
+                .then(response => response.json())
+                .then(data => {
+                    const currentBoxCount = parseInt(data.box_count);
+        
+                    // Kontrola, zda nebude překročen limit 5 boxů
+                    if (currentBoxCount >= 5) {
+                        alert("This hive cannot have more than 5 boxes.");
+                        return false;  // Nepovolit přidání nového boxu
+                    }
+        
+                    return true;  // Povolit přidání nového boxu
+                })
+                .catch(error => {
+                    console.error("Error fetching hive box count:", error);
+                    return false;  // Přerušit operaci při chybě
+                });
+        }
+    
+        // Funkce pro odeslání formuláře (POST nebo PUT)
+        function submitForm(boxId, box_type, box_year, box_notes, box_hive_id) {
+            const url = boxId ? `/api/boxes/${boxId}` : "/api/boxes";
+            const method = boxId ? "PUT" : "POST";
+        
+            fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    box_type: box_type,
+                    box_year: box_year,
+                    box_notes: box_notes,
+                    box_hive_id: box_hive_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                window.loadRecords();
+            })
+            .catch(error => console.error("Error:", error));
+        }
+        
+        function loadHivesForForm(selectedHiveId = null) {
+            return fetch('/api/hives') 
+                .then(response => response.json())
+                .then(data => {
+                    const hiveSelect = document.getElementById('box_hive_id');
+                    hiveSelect.innerHTML = '<option value="" disabled selected>Select Hive</option>'; // Resetování
+        
+                    data.forEach(hive => {
+                        const option = document.createElement('option');
+                        option.value = hive.hive_id;
+                        option.textContent = `Hive ${hive.hive_id}`;
+                        // Používáme volné porovnání == kvůli možnému rozdílu v typech (např. číslo a string)
+                        if (selectedHiveId && selectedHiveId == hive.hive_id) {
+                            option.selected = true; // Nastavení vybraného úlu
+                        }
+                        hiveSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error loading hives:', error));
+        }
+        
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const boxId = urlParams.get('box_id'); // Získání ID boxu z URL
+            const hiveId = urlParams.get('hive_id'); // Získání ID úlu z URL
+            
+            loadHivesForForm();
+            if (boxId) {
+                loadBoxData(boxId); // Načti data o boxu a předvyplň formulář
+            }
+            if (hiveId) {
+                loadHivesForForm(hiveId); // Pokud máme hive_id v URL, automaticky vyber úl
+            }
+        };
+        
+        function loadRecords() {
+            // Fetch all records from the server
+            fetch('/api/boxes')
+                .then(response => response.json())
+                .then(data => {
+                    // Clear previous results
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+        
+                    // Display all records
+                    data.forEach(record => {
+                        // Create a div for each record
+                        const recordDiv = document.createElement('div');
+                        recordDiv.textContent = `Box ID: ${record.box_id}, Type: ${record.box_type}, Year: ${record.box_year}, Notes: ${record.box_notes}, Hive: ${record.box_hive_id}`;
+        
+                        // Add event listener for right-click (context menu)
+                        recordDiv.addEventListener('contextmenu', (event) => {
+                            event.preventDefault(); // Prevent default context menu
+                            const confirmDelete = confirm(`Opravdu chcete smazat záznam s ID ${record.box_id}?`);
+                            if (confirmDelete) {
+                                deleteRecord(record.box_id); // Call the delete function
+                            }
+                        });
+        
+                        // Append record to the results div
+                        resultsDiv.appendChild(recordDiv);
+                    });
+        
+                })
+                .catch(error => {
+                    console.error('Error fetching records:', error);
+                });
+        }
+        
+        // Function to delete a record
+        function deleteRecord(box_id) {
+            // Call the API to delete the record
+            fetch(`/api/boxes/${box_id}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`Záznam s ID ${box_id} byl úspěšně smazán.`);
+                        loadRecords(); // Reload records after deletion
+                    } else {
+                        alert('Došlo k chybě při mazání záznamu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting record:', error);
+                });
+        }
+        
+        function loadBoxData(boxId) {
+            fetch(`/api/boxes/${boxId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        // Předvyplnění formuláře získanými daty
+                        document.getElementById('box_type').value = data.box_type;
+                        document.getElementById('box_year').value = data.box_year;
+                        document.getElementById('box_notes').value = data.box_notes;
+        
+                        // Načti úly a nastav vybraný (zde voláme loadHivesForForm s box_hive_id)
+                        loadHivesForForm(data.box_hive_id);
+        
+                        // Nastavení čísla boxu do title stránky
+                        document.title = `Box ${boxId} update`;
+                    }
+                })
+                .catch(error => console.error("Chyba při načítání dat o boxu:", error));
+        }
+    </script>
+</body>
+
+</html>

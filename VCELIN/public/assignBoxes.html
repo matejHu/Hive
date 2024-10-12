@@ -91,21 +91,7 @@
 
 <body>
 
-    <h1>Create and Assign Hives</h1>
-
-    <!-- Formulář pro vytvoření nového úlu -->
-    <form id="hiveForm">
-        <label for="hive_id">Hive ID:</label>
-        <input type="text" id="hive_id" placeholder="Enter Hive ID" required>
-
-        <label for="hive_year">Hive Year:</label>
-        <input type="number" id="hive_year" placeholder="Enter Hive Year" required>
-
-        <label for="hive_name">Hive Name:</label>
-        <input type="text" id="hive_name" placeholder="Enter Hive Name" required>
-
-        <button type="submit">Create Hive</button>
-    </form>
+    <h1>Assign Boxes to Hives</h1>
 
     <!-- Kontejner pro boxy a hives vedle sebe -->
     <div class="container">
@@ -128,34 +114,6 @@
     <button id="assignButton">Assign Boxes to Hive</button>
 
     <script>
-        // Event listener pro vytvoření úlu
-        document.getElementById("hiveForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            let hive_id = document.getElementById("hive_id").value;
-            let hive_year = document.getElementById("hive_year").value;
-            let hive_name = document.getElementById("hive_name").value;
-
-            // Odeslání nového úlu na backend (API call na server)
-            fetch("/api/hives", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    hive_id: hive_id,
-                    hive_year: hive_year,
-                    hive_name: hive_name
-                })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Hive created:", data);
-                    loadHivesWithBoxes();  // Znovu načteme seznam úlů
-                })
-                .catch(error => console.error("Error creating hive:", error));
-        });
-
 
         // Načtení boxes
         function loadBoxes() {
@@ -167,7 +125,7 @@
 
                     data.forEach(box => {
                         // Zkontroluj, jestli je box_hive_id null (nebo undefined)
-                        if (box.box_hive_id === null) {
+                        if (box.box_hive_id === null || box.box_hive_id === 0) {
                             const boxDiv = document.createElement('div');
 
                             // Vytvoření checkboxu pro každý box

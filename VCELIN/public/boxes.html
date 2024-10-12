@@ -4,126 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boxes CR</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
+    <link rel="stylesheet" href="styles/boxes.css">
+    <title>Boxes CRD</title>
 
-        h1 {
-            color: #333;
-            margin-top: 20px;
-        }
-
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            margin-bottom: 20px;
-        }
-
-        input[type="number"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        input[type="number"]:focus,
-        input[type="text"]:focus {
-            border-color: #007BFF;
-            outline: none;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        button:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-
-        #results {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: auto;
-            min-height: 100px;
-            margin-top: 20px;
-            text-align: left;
-            overflow-y: auto;
-            max-height: 200px;
-        }
-
-        #loadButton {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 20px;
-            width: 150px;
-        }
-
-        #loadButton:hover {
-            background-color: #218838;
-        }
-
-        #loadButton:focus {
-            outline: none;
-            box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
-        }
-    </style>
 </head>
 
 <body>
     <form id="boxForm">
-        <input type="number" id="box_id" placeholder="Id">
-        <input type="text" id="box_type" placeholder="Type">
-        <input type="number" id="box_year" placeholder="Year">
-        <input type="text" id="box_notes" placeholder="Notes">
-        <input type="number" id="box_hive_id" placeholder="Hive">
-        <button type="submit">Submit</button>
+        <label for="box_type">Box Type:</label>
+        <select id="box_type" required>
+            <option value="" disabled selected>Select Box Type</option>
+            <option value="plodiště">Plodiště</option>
+            <option value="medník">Medník</option>
+        </select>
+    
+        <label for="box_year">Year:</label>
+        <input type="number" id="box_year" placeholder="Year" min="2000">
+    
+        <label for="box_notes">Notes:</label>
+        <input type="text" id="box_notes" placeholder="Notes" maxlength="200">
+    
+        <label for="box_hive_id">Hive:</label>
+        <select id="box_hive_id">
+            <option value="" disabled selected>Select Hive</option>
+            <!-- Dynamicky se sem vloží data z databáze -->
+        </select>
+    
+        <button type="submit">Create new box</button>
     </form>
+
     <h1>Read All Records</h1>
 
     <button id="loadButton" onclick="loadRecords()">Load All Records</button>
 
     <div id="results"></div>
+
     <script>
         document.getElementById("boxForm").addEventListener("submit", function (event) {
             event.preventDefault();
 
-            let box_id = document.getElementById("box_id").value;
             let box_type = document.getElementById("box_type").value;
             let box_year = document.getElementById("box_year").value;
             let box_notes = document.getElementById("box_notes").value;
@@ -135,7 +54,7 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    box_id: box_id,
+
                     box_type: box_type,
                     box_year: box_year,
                     box_notes: box_notes,
@@ -143,11 +62,44 @@
                 })
             })
                 .then(response => response.json())
-                .then(data => console.log(data))
+                .then(data => {
+                    console.log(data);
+                    // Vymazání formuláře po odeslání
+                    document.getElementById("boxForm").reset();
+                    loadRecords();
+                })
                 .catch(error => console.error("Error:", error));
         });
-    </script>
-    <script>
+
+        // Funkce pro načtení úlů z API a jejich přidání do select boxu
+        function loadHivesForForm(hiveId) {
+            fetch("/api/hives")
+                .then(response => response.json())
+                .then(data => {
+                    const hiveSelect = document.getElementById("box_hive_id");
+
+                    // Pro každé hive_id přidáme možnost do <select>
+                    data.forEach(hive => {
+                        const option = document.createElement("option");
+                        option.value = hive.hive_id;
+                        option.text = `${hive.hive_name} (ID: ${hive.hive_id})`;
+                        hiveSelect.appendChild(option);
+                    });
+
+                    // Předvyplnění hodnoty, pokud existuje odpovídající možnost
+                    if (hiveId) {
+                        const optionExists = [...hiveSelect.options].some(option => option.value === hiveId);
+
+                        if (optionExists) {
+                            hiveSelect.value = hiveId; // Nastavení hodnoty select boxu
+                        } else {
+                            console.error('Hive ID z URL neodpovídá žádné možnosti v selectu.');
+                        }
+                    }
+                })
+                .catch(error => console.error("Error loading hives:", error));
+        }
+
         function loadRecords() {
             // Fetch all records from the server
             fetch('/api/boxes')
@@ -200,8 +152,14 @@
                     console.error('Error deleting record:', error);
                 });
         }
-    </script>
 
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hiveId = urlParams.get('hive_id'); // Získání hive_id z URL
+
+            loadHivesForForm(hiveId);
+        };
+    </script>
 </body>
 
 </html>

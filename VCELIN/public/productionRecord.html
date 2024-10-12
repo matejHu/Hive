@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/productionRecord.css">
+    <title>Production record</title>
+
+</head>
+
+<body>
+    <h1>Create a New Production Record</h1>
+
+    <!-- Formulář pro vytvoření nového záznamu produkce -->
+    <form id="productionForm">
+        <input type="number" id="production_box_id" placeholder="Enter Box ID" required>
+        <input type="number" id="production_volume" placeholder="Enter Volume" required>
+        <input type="date" id="production_date" required>
+        <select id="production_type" required>
+            <option value="" disabled selected>Type of production</option>
+            <option value="first">První</option>
+            <option value="second">Druhá</option>
+            <option value="third">Třetí</option>
+        </select>
+        <input type="text" id="production_note" placeholder="Enter Note" maxlength="200">
+        <button type="submit">Create Production</button>
+    </form>
+
+    <h1>Read All Production Records</h1>
+    <button id="loadButton" onclick="loadProductions()">Load All Productions</button>
+
+    <div id="results"></div>
+
+    <script>
+        // Zpracování formuláře pro vytvoření nového záznamu produkce
+        document.getElementById("productionForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let production_box_id = document.getElementById("production_box_id").value;
+            let production_volume = document.getElementById("production_volume").value;
+            let production_date = document.getElementById("production_date").value;
+            let production_type = document.getElementById("production_type").value;
+            let production_note = document.getElementById("production_note").value;
+
+            // Odeslání požadavku na vytvoření záznamu produkce
+            fetch("/api/productions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    production_box_id: production_box_id,
+                    production_volume: production_volume,
+                    production_date: production_date,
+                    production_type: production_type,
+                    production_note: production_note
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Vymazání formuláře po odeslání
+                document.getElementById("productionForm").reset();
+                loadProductions();
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+        // Funkce pro načtení všech záznamů produkce
+        function loadProductions() {
+            fetch('/api/productions')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    data.forEach(record => {
+                        const recordDiv = document.createElement('div');
+                        recordDiv.textContent = `Production ID: ${record.production_id}, Box ID: ${record.production_box_id}, Volume: ${record.production_volume} kg, Date: ${record.production_date}, Type: ${record.production_type}, Note: ${record.production_note}`;
+
+                        // Přidání kontextového menu pro mazání záznamů
+                        recordDiv.addEventListener('contextmenu', (event) => {
+                            event.preventDefault();
+                            const confirmDelete = confirm(`Opravdu chcete smazat záznam produkce s ID ${record.production_id}?`);
+                            if (confirmDelete) {
+                                deleteProduction(record.production_id);
+                            }
+                        });
+
+                        resultsDiv.appendChild(recordDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching productions:', error);
+                });
+        }
+
+        // Funkce pro mazání záznamů produkce
+        function deleteProduction(production_id) {
+            fetch(`/api/productions/${production_id}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Záznam produkce s ID ${production_id} byl úspěšně smazán.`);
+                    loadProductions();
+                } else {
+                    alert('Došlo k chybě při mazání záznamu.');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting production:', error);
+            });
+        }
+
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const boxId = urlParams.get('box_id');
+
+            if (boxId) {
+                document.getElementById('production_box_id').value = boxId;
+            }
+        };
+    </script>
+
+</body>
+
+</html>
