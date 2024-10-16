@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/motherDetails.css">
     <title>Mother details</title>
-   
-</head>
-<body>
-    <h1>Detaily Matky</h1>
-    <div id="motherContainer"></div>
 
+</head>
+
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <h1>Detaily Matky</h1>
+        <div id="motherContainer"></div>
+    </div>
     <script>
         // Function to render mother details
         function renderMother(mother) {
             const container = document.getElementById('motherContainer');
-    
+
             // Create mother element
             const motherElement = document.createElement('div');
             motherElement.classList.add('mother');
-    
+
             // Create mother header
             const motherHeader = document.createElement('div');
             motherHeader.classList.add('mother-header');
             motherHeader.textContent = `Původ: ${mother.mother_origin}`;
             motherElement.appendChild(motherHeader);
-    
+
             // Create mother year
             const motherYear = document.createElement('div');
             motherYear.classList.add('mother-year');
             motherYear.textContent = `Rok: ${mother.mother_year}`;
             motherElement.appendChild(motherYear);
-    
+
             // Render notes
             const motherNotes = document.createElement('div');
             motherNotes.classList.add('item');
@@ -46,10 +55,10 @@
             motherId.classList.add('mother-id');
             motherId.textContent = `ID matky: ${mother.mother_id}`;
             motherElement.appendChild(motherId);
-    
+
             container.appendChild(motherElement);
         }
-    
+
         // Function to fetch mother data from the API
         async function fetchMotherDetails(motherId) {
             try {
@@ -57,7 +66,7 @@
                 if (!response.ok) {
                     throw new Error(`Error fetching mother details: ${response.statusText}`);
                 }
-    
+
                 const motherData = await response.json();
                 renderMother(motherData);
             } catch (error) {
@@ -65,13 +74,13 @@
                 document.getElementById('motherContainer').innerText = 'Chyba při načítání dat.';
             }
         }
-    
+
         // Function to get mother_id from the URL
         function getMotherIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('mother_id');
         }
-    
+
         // Get mother_id from URL and fetch mother details
         const motherId = getMotherIdFromUrl(); // Get mother_id from URL
         if (motherId) {
@@ -81,4 +90,5 @@
         }
     </script>
 </body>
+
 </html>

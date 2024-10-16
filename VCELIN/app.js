@@ -1,13 +1,24 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const session = require("express-session");
 const { Pool } = require("pg");
+const bcrypt = require('bcrypt');
 const path = require("path");
+const port = 3000;
 
 const app = express();
 app.use(bodyParser.json());
 
 // Servírování statických souborů z adresáře 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware pro správu session
+app.use(session({
+    secret: 'your-secret-key', // Tento klíč musí být silný a tajný
+    resave: false,              // Session nebude znovu uložena, pokud se nezmění
+    saveUninitialized: false,   // Session nebude vytvořena, dokud nebude upravena
+    cookie: { secure: false }   // `secure: true` by mělo být použito pouze v HTTPS prostředí
+}));
 
 // Připojení k PostgreSQL
 const pool = new Pool({
@@ -18,13 +29,89 @@ const pool = new Pool({
     port: 5432,
 });
 
-// POST do boxes
+// Zabezpečený registrační endpoint
+app.post('/api/register', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    try {
+        // Ověř, zda uživatel již existuje
+        const userExists = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (userExists.rows.length > 0) {
+            return res.json({ success: false, message: 'Username already exists' });
+        }
+
+        // Hashuj heslo před uložením do databáze
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 je "salt rounds"
+
+        // Ulož uživatele do databáze
+        await pool.query('INSERT INTO users (username, email, password) VALUES ($1, $2, $3)', [username, email, hashedPassword]);
+
+        res.json({ success: true, message: 'Registration successful' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+
+// Přihlašovací endpoint
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+
+            // Ověření hesla
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (isMatch) {
+                // Uložení `user_id` do session
+                req.session.user_id = user.user_id;
+                res.json({ success: true, message: 'Login successful' });
+            } else {
+                res.json({ success: false, message: 'Invalid password' });
+            }
+        } else {
+            res.json({ success: false, message: 'Invalid username' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Database error' });
+    }
+});
+
+// Endpoint pro odhlášení
+app.post('/api/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Failed to log out' });
+        }
+        res.json({ success: true, message: 'Logged out successfully' });
+    });
+});
+
+// Ověření, zda je uživatel přihlášený
+app.get('/api/isLoggedIn', (req, res) => {
+    if (req.session.user_id) {
+        res.json({ success: true, message: 'User is logged in', user_id: req.session.user_id });
+    } else {
+        res.json({ success: false, message: 'User is not logged in' });
+    }
+});
+
+
 app.post("/api/boxes", (req, res) => {
     const { box_type, box_year, box_notes, box_hive_id } = req.body;
+    const user_id = req.session.user_id; // Získání user_id ze session
+
+    if (!user_id) {
+        return res.status(401).send("Unauthorized");
+    }
 
     pool.query(
-        "INSERT INTO boxes (box_type, box_year, box_notes, box_hive_id) VALUES ($1, $2, $3, $4) RETURNING *",
-        [box_type, box_year, box_notes, box_hive_id || null], // Nepoužíváme box_id
+        "INSERT INTO boxes (box_type, box_year, box_notes, box_hive_id, box_user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+        [box_type, box_year, box_notes, box_hive_id || null, user_id], // Přidání user_id do dotazu
         (error, result) => {
             if (error) {
                 console.error(error);
@@ -39,10 +126,15 @@ app.post("/api/boxes", (req, res) => {
 // POST dat do mothers
 app.post("/api/mothers", (req, res) => {
     const { mother_origin, mother_year, mother_notes, mother_hive_id } = req.body;
+    const user_id = req.session.user_id; // Získání user_id ze session
+
+    if (!user_id) {
+        return res.status(401).send("Unauthorized");
+    }
 
     pool.query(
-        "INSERT INTO mothers (mother_origin, mother_year, mother_notes, mother_hive_id) VALUES ($1, $2, $3, $4) RETURNING *",
-        [mother_origin, mother_year, mother_notes, mother_hive_id || null],
+        "INSERT INTO mothers (mother_origin, mother_year, mother_notes, mother_hive_id, mother_user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+        [mother_origin, mother_year, mother_notes, mother_hive_id || null, user_id],
         (error, result) => {
             if (error) {
                 console.error(error);
@@ -75,10 +167,38 @@ app.post("/api/checkups", (req, res) => {
 // POST dat do hives
 app.post("/api/hives", (req, res) => {
     const { hive_year, hive_name } = req.body;
+    const user_id = req.session.user_id; // Získání user_id ze session
+
+    if (!user_id) {
+        return res.status(401).send("Unauthorized");
+    }
 
     pool.query(
-        "INSERT INTO hives (hive_year, hive_name) VALUES ($1, $2) RETURNING *",
-        [hive_year, hive_name],
+        "INSERT INTO hives (hive_year, hive_name, hive_user_id) VALUES ($1, $2, $3) RETURNING *",
+        [hive_year, hive_name, user_id],
+        (error, result) => {
+            if (error) {
+                console.error(error);
+                res.status(500).send("Error saving data");
+            } else {
+                res.status(200).json(result.rows[0]);
+            }
+        }
+    );
+});
+
+// POST dat do locations
+app.post("/api/locations", (req, res) => {
+    const { location_name } = req.body;
+    const user_id = req.session.user_id; // Získání user_id ze session
+
+    if (!user_id) {
+        return res.status(401).send("Unauthorized");
+    }
+
+    pool.query(
+        "INSERT INTO locations (location_name, location_user_id) VALUES ($1, $2) RETURNING *",
+        [location_name, user_id],
         (error, result) => {
             if (error) {
                 console.error(error);
@@ -109,12 +229,12 @@ app.post("/api/assignBoxesToHive", (req, res) => {
 
 // POST: Vytvoření nového záznamu produkce
 app.post('/api/productions', async (req, res) => {
-    const { production_box_id, production_volume, production_date, production_type, production_note } = req.body;
+    const { production_hive_id, production_volume, production_date, production_type, production_note } = req.body;
 
     try {
         const result = await pool.query(
-            'INSERT INTO production (production_box_id, production_volume, production_date, production_type, production_note) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [production_box_id, production_volume, production_date, production_type, production_note]
+            'INSERT INTO production (production_hive_id, production_volume, production_date, production_type, production_note) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [production_hive_id, production_volume, production_date, production_type, production_note]
         );
         res.status(201).json(result.rows[0]); // Vrátí nově vytvořený záznam
     } catch (error) {
@@ -251,8 +371,31 @@ app.get("/api/hives", (req, res) => {
     });
 });
 
+
+//GET záznamy z locations
+app.get("/api/locations", (req, res) => {
+    const userId = req.session.user_id;  // Získání user_id ze session
+    
+    pool.query(
+        "SELECT location_id, location_name FROM locations WHERE location_user_id = $1", 
+        [userId],  // Použití userId jako parametru v dotazu
+        (error, results) => {
+            if (error) {
+                console.error(error);
+                res.status(500).send("Error retrieving locations");
+            } else {
+                res.status(200).json(results.rows);  // Vrátí pouze lokace pro daného uživatele
+            }
+        }
+    );
+});
+
+
 // GET všechny úly s výpisem přiřazených boxů a mother_id
-app.get("/api/hivesWithBoxes", (req, res) => {
+app.get("/api/hivesWithBoxes/:locationId", (req, res) => {
+    const locationId = req.params.locationId;  // Získání ID lokace z parametru URL
+    const userId = req.session.user_id;  // Získání user_id ze session
+
     pool.query(`
         SELECT h.hive_id, h.hive_name, h.hive_year, 
                json_agg(json_build_object('box_id', b.box_id, 'box_type', b.box_type, 'box_year', b.box_year)) as boxes,
@@ -260,14 +403,38 @@ app.get("/api/hivesWithBoxes", (req, res) => {
         FROM hives h
         LEFT JOIN boxes b ON h.hive_id = b.box_hive_id
         LEFT JOIN mothers m ON h.hive_id = m.mother_hive_id  -- Přidání joinu pro mothers
-        GROUP BY h.hive_id, m.mother_id;  -- Skupinování podle hive_id a mother_id
-    `, (error, result) => {
+        WHERE h.hive_user_id = $1  -- Filtrování podle user_id
+          AND h.hive_location_id = $2  -- Filtrování podle location_id
+        GROUP BY h.hive_id, m.mother_id;
+    `, [userId, locationId], (error, result) => {  // Použití user_id a location_id
         if (error) {
             console.error(error);
             res.status(500).send("Error fetching hives with boxes and mothers");
         } else {
             res.status(200).json(result.rows);
         }
+    });
+});
+
+// načítání lokací a hives
+app.get('/api/locationsWithHives', (req, res) => {
+    const user_id = req.session.user_id;  // Získání user_id ze session
+
+    const query = `
+        SELECT locations.location_id, locations.location_name, locations.location_user_id, hives.hive_id, hives.hive_name, hives.hive_year
+        FROM locations
+        LEFT JOIN hives 
+        ON locations.location_id = hives.hive_location_id
+        WHERE locations.location_user_id = $1;
+    `;
+
+    pool.query(query, [user_id], (error, results) => {
+        if (error) {
+            return res.status(500).json({ success: false, message: 'Error fetching locations and hives', error });
+        }
+
+        // Přímo vracíme výsledky jako JSON
+        res.status(200).json(results.rows);
     });
 });
 
@@ -504,6 +671,31 @@ app.delete("/api/hives/:id", (req, res) => {
     });
 });
 
+//DELETE locations podle id
+app.delete("/api/locations/:id", (req, res) => {
+    const id = req.params.id;
+
+    // Nejprve nastavíme hive_location_id na NULL pro všechny úly propojené s lokací
+    pool.query("UPDATE hives SET hive_location_id = NULL WHERE hive_location_id = $1", [id], (error, result) => {
+        if (error) {
+            console.error("Error updating hives:", error);
+            res.status(500).send("Error updating hives");
+        } else {
+            // Poté smažeme samotnou lokaci
+            pool.query("DELETE FROM locations WHERE location_id = $1 RETURNING *", [id], (error, result) => {
+                if (error) {
+                    console.error("Database error:", error);
+                    res.status(500).send("Error deleting record");
+                } else if (result.rows.length === 0) {
+                    res.status(404).send("Record not found");
+                } else {
+                    res.status(200).json({ message: `Record with ID ${id} deleted successfully` });
+                }
+            });
+        }
+    });
+});
+
 // DELETE: Smazání záznamu produkce podle ID
 app.delete('/api/productions/:id', async (req, res) => {
     const production_id = req.params.id;
@@ -614,9 +806,9 @@ app.put('/api/mothers/:id', (req, res) => {
 // UPDATE záznam o produkci podle id
 app.put('/api/production/:id', async (req, res) => {
     const productionId = req.params.id;
-    const { production_box_id, production_volume, production_date, production_type, production_note } = req.body;
+    const { production_hive_id, production_volume, production_date, production_type, production_note } = req.body;
 
-    if (!production_box_id || !production_volume || !production_date || !production_type) {
+    if (!production_hive_id || !production_volume || !production_date || !production_type) {
         return res.status(400).json({ error: 'Všechna povinná pole musí být vyplněna' });
     }
 
@@ -624,14 +816,14 @@ app.put('/api/production/:id', async (req, res) => {
         // SQL dotaz pro aktualizaci produkce podle ID
         const query = `
             UPDATE production
-            SET production_box_id = $1, production_volume = $2, production_date = $3, production_type = $4, production_note = $5
+            SET production_hive_id = $1, production_volume = $2, production_date = $3, production_type = $4, production_note = $5
             WHERE production_id = $6
             RETURNING *;
         `;
 
         // Vykonání dotazu s poskytnutými hodnotami
         const result = await pool.query(query, [
-            production_box_id,
+            production_hive_id,
             production_volume,
             production_date,
             production_type,
@@ -652,6 +844,8 @@ app.put('/api/production/:id', async (req, res) => {
         res.status(500).json({ error: 'Došlo k chybě při aktualizaci produkce' });
     }
 });
+
+
 
 // Spuštění serveru
 app.listen(3000, () => {

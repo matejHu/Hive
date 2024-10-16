@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/locations.css">
+    <title>Locations CRD</title>
+
+</head>
+
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <h1>Locations CRD</h1>
+
+        <!-- Formulář pro vytvoření nové lokace -->
+        <form id="locationForm">
+            <input type="text" id="location_name" placeholder="Enter location Name" required>
+            <button type="submit">Create Location</button>
+        </form>
+
+        <h1>Read All Locations</h1>
+        <button id="loadButton" onclick="loadLocations()">Load All Locations</button>
+
+        <div id="results"></div>
+    </div>
+    <script>
+        document.getElementById("locationForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            let location_name = document.getElementById("location_name").value;
+
+            fetch("/api/locations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    location_name: location_name
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Vymazání formuláře po odeslání
+                    document.getElementById("locationForm").reset();
+                    loadLocations();
+                })
+                .catch(error => console.error("Error:", error));
+        });
+
+        function loadLocations() {
+            fetch('/api/locations')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsDiv = document.getElementById('results');
+                    resultsDiv.innerHTML = '';
+
+                    data.forEach(record => {
+                        const recordDiv = document.createElement('div');
+                        recordDiv.textContent = `Location ID: ${record.location_id}, Name: ${record.location_name}`;
+
+                        recordDiv.addEventListener('contextmenu', (event) => {
+                            event.preventDefault();
+                            const confirmDelete = confirm(`Opravdu chcete smazat lokaci s ID ${record.location_id}?`);
+                            if (confirmDelete) {
+                                deleteLocation(record.location_id);
+                            }
+                        });
+
+                        resultsDiv.appendChild(recordDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching locations:', error);
+                });
+        }
+
+        function deleteLocation(location_id) {
+            fetch(`/api/locations/${location_id}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert(`Lokace s ID ${location_id} byla úspěšně smazána.`);
+                        loadLocations();
+                    } else {
+                        alert('Došlo k chybě při mazání lokace.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting location:', error);
+                });
+        }
+
+
+    </script>
+
+</body>
+
+</html>

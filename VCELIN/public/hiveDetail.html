@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,31 +8,41 @@
     <title>Hive details</title>
 
 </head>
-<body>
-    <h1>Detaily Úlu</h1>
-    <div id="hiveContainer"></div>
 
+<body>
+
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+
+        <h1>Detaily Úlu</h1>
+        <div id="hiveContainer"></div>
+    </div>
     <script>
         // Function to render a single hive
         function renderHive(hive) {
             const container = document.getElementById('hiveContainer');
-    
+
             // Create hive element
             const hiveElement = document.createElement('div');
             hiveElement.classList.add('hive');
-    
+
             // Create hive header
             const hiveHeader = document.createElement('div');
             hiveHeader.classList.add('hive-header');
             hiveHeader.textContent = `Úl: ${hive.hive_name}`;
             hiveElement.appendChild(hiveHeader);
-    
+
             // Create hive year
             const hiveYear = document.createElement('div');
             hiveYear.classList.add('hive-year');
             hiveYear.textContent = `Rok vytvoření: ${hive.hive_year}`;
             hiveElement.appendChild(hiveYear);
-    
+
             // Render boxes section
             if (hive.boxes.length > 0) {
                 const boxesSection = document.createElement('div');
@@ -40,7 +51,7 @@
                 boxesTitle.classList.add('section-title');
                 boxesTitle.textContent = 'Boxy:';
                 boxesSection.appendChild(boxesTitle);
-    
+
                 hive.boxes.forEach(box => {
                     const boxElement = document.createElement('div');
                     boxElement.classList.add('item');
@@ -50,10 +61,10 @@
                     `;
                     boxesSection.appendChild(boxElement);
                 });
-    
+
                 hiveElement.appendChild(boxesSection);
             }
-    
+
             // Render mothers section
             if (hive.mothers.length > 0) {
                 const mothersSection = document.createElement('div');
@@ -62,7 +73,7 @@
                 mothersTitle.classList.add('section-title');
                 mothersTitle.textContent = 'Matky:';
                 mothersSection.appendChild(mothersTitle);
-    
+
                 hive.mothers.forEach(mother => {
                     const motherElement = document.createElement('div');
                     motherElement.classList.add('item');
@@ -72,10 +83,10 @@
                     `;
                     mothersSection.appendChild(motherElement);
                 });
-    
+
                 hiveElement.appendChild(mothersSection);
             }
-    
+
             // Render checkups section
             if (hive.checkups.length > 0) {
                 const checkupsSection = document.createElement('div');
@@ -84,7 +95,7 @@
                 checkupsTitle.classList.add('section-title');
                 checkupsTitle.textContent = 'Kontroly:';
                 checkupsSection.appendChild(checkupsTitle);
-    
+
                 hive.checkups.forEach(checkup => {
                     const checkupElement = document.createElement('div');
                     checkupElement.classList.add('item');
@@ -96,7 +107,7 @@
                     `;
                     checkupsSection.appendChild(checkupElement);
                 });
-    
+
                 hiveElement.appendChild(checkupsSection);
             }
 
@@ -107,7 +118,7 @@
 
             container.appendChild(hiveElement);
         }
-    
+
         // Function to fetch data from the API
         async function fetchHiveDetails(hiveId) {
             try {
@@ -115,7 +126,7 @@
                 if (!response.ok) {
                     throw new Error(`Error fetching hive details: ${response.statusText}`);
                 }
-    
+
                 const hiveData = await response.json();
                 renderHive(hiveData);
             } catch (error) {
@@ -123,13 +134,13 @@
                 document.getElementById('hiveContainer').innerText = 'Chyba při načítání dat.';
             }
         }
-    
+
         // Function to get hive_id from the URL
         function getHiveIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('hive_id');
         }
-    
+
         // Get hive_id from URL and fetch hive details
         const hiveId = getHiveIdFromUrl(); // Get hive_id from URL
         if (hiveId) {

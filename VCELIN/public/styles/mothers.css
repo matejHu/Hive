@@ -1,18 +1,53 @@
 body {
     font-family: Arial, sans-serif;
     background-color: #f7f7f7;
+    margin: 0;
+    height: 100vh;
+}
+
+/* Horní panel */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #333;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Odkazy v panelu */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    display: inline-block;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Kontejner pro obsah pod navbar */
+.content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 100vh;
-    margin: 0;
+    justify-content: center;
+    height: calc(100vh - 60px); /* Celková výška minus výška navigačního panelu */
+    padding-top: 60px; /* Odsazení kvůli fixnímu navbaru */
 }
 
+/* Styl pro nadpis */
 h1 {
     color: #333;
     margin-top: 20px;
 }
 
+/* Formulář */
 form {
     background-color: #fff;
     padding: 20px;
@@ -28,11 +63,8 @@ input[type="date"],
 input[type="text"],
 input[type="number"] {
     display: block;
-    /* Zajišťuje, že každý prvek bude na svém vlastním řádku */
     width: 100%;
-    /* Aby vstupy a selecty zabíraly 100% šířky */
     margin-bottom: 15px;
-    /* Mezera mezi jednotlivými prvky */
 }
 
 input[type="number"],

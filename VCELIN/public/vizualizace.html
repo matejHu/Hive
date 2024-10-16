@@ -6,49 +6,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/vizualizace.css">
     <title>Hive Visualization</title>
-    
+
 </head>
 
 <body>
 
-    <h1>Hive Visualization</h1>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
 
-    <a href="assignBoxes.html" target="_blank">Assign boxes to hives</a>
-    <a href="hives.html" target="_blank">Create new hive</a>
-    <a href="boxUpdate.html" target="_blank">Create new box</a>
 
-    <div class="hive-container" id="hiveContainer">
-        <!-- Úly se zobrazí zde -->
+        <!-- Dropdown menu -->
+        <div class="dropdown">
+            <a href="#menu">Menu</a>
+            <div class="dropdown-content">
+                <a href="hives.html" target="_blank">Create new hive</a>
+                <a href="assignBoxes.html" target="_blank">Assign boxes to hives</a>
+                <a href="locations.html" target="_blank">Create new location</a>
+            </div>
+        </div>
+        <a href="#" id="authLink"></a>
     </div>
 
-    <!-- Kontextová nabídka pro úly -->
-    <div id="hiveContextMenu" class="context-menu">
-        <a href="#" target="_blank" id="addCheckupLink">Přidat checkup</a>
-        <a href="#" target="_blank" id="addMotherLink">Přidat mother</a>
-        <a href="#" target="_blank" id="addBoxLink">Přidat box</a>
-        <a href="#" target="_blank" id="hiveDetails">Zobrazit detaily</a>
-        <a href="#" target="_blank" id="hiveUpdate">Upravit data</a>
-        <a href="#" target="_blank" id="hiveCheckups">Záznamy kontrol</a>
-        <a href="#" id="hiveDelete">Smazat úl</a>
-    </div>
+    <div class="content">
+        <h1>Hive Visualization</h1>
 
-    <!-- Kontextová nabídka pro boxy -->
-    <div id="boxContextMenu" class="context-menu">
-        <a href="#" target="_blank" id="boxDetailsLink">Zobrazit detaily</a>
-        <a href="#" target="_blank" id="moveBoxLink">Přesunout box</a>
-        <a href="#" target="_blank" id="deleteBoxLink">Smazat box</a>
-        <a href="#" target="_blank" id="productionRecord">Záznam produkce</a>
-        <a href="#" target="_blank" id="boxUpdate">Upravit data</a>
-    </div>
+        <div class="location-container" id="locationContainer">
+            <div class="hive-container" id="hiveContainer">
+                <!-- Úly se zobrazí zde -->
+            </div>
+        </div>
 
-    <!-- Kontextová nabídka pro boxy -->
-    <div id="motherContextMenu" class="context-menu">
-        <a href="#" target="_blank" id="motherDetails">Zobrazit detaily</a>
-        <a href="#" target="_blank" id="updateMother">Upravit data</a>
-        <a href="#" target="_blank" id="deleteMother">Smazat mother</a>
-    </div>
+        <!-- Kontextová nabídka pro úly -->
+        <div id="hiveContextMenu" class="context-menu">
+            <a href="#" target="_blank" id="addCheckupLink">Přidat checkup</a>
+            <a href="#" target="_blank" id="addMotherLink">Přidat mother</a>
+            <a href="#" target="_blank" id="addBoxLink">Přidat box</a>
+            <a href="#" target="_blank" id="hiveDetails">Zobrazit detaily</a>
+            <a href="#" target="_blank" id="hiveUpdate">Upravit data</a>
+            <a href="#" target="_blank" id="hiveCheckups">Záznamy kontrol</a>
+            <a href="#" id="hiveDelete">Smazat úl</a>
+        </div>
 
+        <!-- Kontextová nabídka pro boxy -->
+        <div id="boxContextMenu" class="context-menu">
+            <a href="#" target="_blank" id="boxDetailsLink">Zobrazit detaily</a>
+            <a href="#" target="_blank" id="moveBoxLink">Přesunout box</a>
+            <a href="#" target="_blank" id="deleteBoxLink">Smazat box</a>
+            <a href="#" target="_blank" id="productionRecord">Záznam produkce</a>
+            <a href="#" target="_blank" id="boxUpdate">Upravit data</a>
+        </div>
+
+        <!-- Kontextová nabídka pro boxy -->
+        <div id="motherContextMenu" class="context-menu">
+            <a href="#" target="_blank" id="motherDetails">Zobrazit detaily</a>
+            <a href="#" target="_blank" id="updateMother">Upravit data</a>
+            <a href="#" target="_blank" id="deleteMother">Smazat mother</a>
+        </div>
+    </div>
     <script>
+        // Funkce pro kontrolu, jestli je uživatel přihlášen
+        function checkAuthStatus() {
+            fetch('/api/isLoggedIn', {
+                method: 'GET',
+                credentials: 'include' // Pro odesílání cookies (session)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const authLink = document.getElementById('authLink');
+
+                    if (data.success) {
+                        // Uživatel je přihlášený, změň odkaz na Logout
+                        authLink.textContent = 'Logout';
+                        authLink.href = '#';
+                        authLink.addEventListener('click', function (event) {
+                            event.preventDefault();
+                            logoutUser();
+                        });
+                    } else {
+                        // Uživatel není přihlášený, změň odkaz na Login
+                        authLink.textContent = 'Login';
+                        authLink.href = 'login.html'; // Změň na svou přihlašovací stránku
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking login status:', error);
+                });
+        }
+
+        // Funkce pro odhlášení
+        function logoutUser() {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = 'login.html'; // Změň na svou přihlašovací stránku
+                    } else {
+                        alert('Failed to log out: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during logout:', error);
+                });
+        }
+
+        // Zkontroluj stav přihlášení při načtení stránky
+        document.addEventListener('DOMContentLoaded', checkAuthStatus);
 
         // Funkce pro skrytí všech kontextových nabídek
         function hideAllContextMenus() {
@@ -61,12 +131,55 @@
             motherContextMenu.style.display = 'none';
         }
 
-        function loadHivesWithBoxes() {
-            fetch('/api/hivesWithBoxes')
+        function locationsWithHives() {
+            fetch('/api/locations')
+                .then(response => response.json())
+                .then(locations => {
+                    const locationContainer = document.getElementById("locationContainer");
+                    locationContainer.innerHTML = '';  // Vymaže stávající obsah
+
+                    // Zkontrolujeme, zda jsou nějaké lokace
+                    if (locations.length === 0) {
+                        const noLocationsMessage = document.createElement('p');
+                        noLocationsMessage.textContent = "User doesn't have any locations or hives";
+                        locationContainer.appendChild(noLocationsMessage);
+                        return;  // Pokud nejsou lokace, ukončíme funkci
+                    }
+
+                    // Pro každou lokaci vytvoříme nový kontejner
+                    locations.forEach(location => {
+                        // Vytvoříme nový div pro lokaci
+                        const locationDiv = document.createElement('div');
+                        locationDiv.className = 'location';  // Třída pro stylování
+                        locationDiv.dataset.locationId = location.location_id;  // Uložení ID lokace do data atributu
+
+                        // Přidáme název lokace
+                        const locationTitle = document.createElement('h3');
+                        locationTitle.textContent = `Location: ${location.location_name}`;
+                        locationDiv.appendChild(locationTitle);
+
+                        // Přidáme kontejner pro úly, který bude mít stejné ID jako lokace
+                        const hiveContainer = document.createElement('div');
+                        hiveContainer.className = 'hive-container';
+                        hiveContainer.id = `hiveContainer-${location.location_id}`;  // Unikátní ID pro úly v této lokaci
+                        locationDiv.appendChild(hiveContainer);
+
+                        // Přidáme celou lokaci do hlavního kontejneru
+                        locationContainer.appendChild(locationDiv);
+
+                        // Zavoláme funkci pro zobrazení úlů v konkrétní lokaci
+                        loadHivesWithBoxes(location.location_id);
+                    });
+                })
+                .catch(error => console.error('Error fetching locations:', error));
+        }
+
+        function loadHivesWithBoxes(locationId) {
+            fetch(`/api/hivesWithBoxes/${locationId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const hiveContainer = document.getElementById("hiveContainer");
-                    hiveContainer.innerHTML = '';  // Vymaže předchozí obsah
+                    const hiveContainer = document.getElementById(`hiveContainer-${locationId}`);
+                    hiveContainer.innerHTML = '';  // Vymaže předchozí obsah kontejneru pro úly
 
                     data.forEach(hive => {
                         const hiveDiv = document.createElement('div');
@@ -124,27 +237,27 @@
 
                             // Kontextová nabídka po kliknutí pravým tlačítkem na box
                             motherDiv.addEventListener('contextmenu', function (event) {
-                                        event.preventDefault();  // Zabraň výchozí kontextové nabídce
-                                        event.stopPropagation();
+                                event.preventDefault();  // Zabraň výchozí kontextové nabídce
+                                event.stopPropagation();
 
-                                        // Skryj všechny ostatní kontextové nabídky
-                                        hideAllContextMenus();
+                                // Skryj všechny ostatní kontextové nabídky
+                                hideAllContextMenus();
 
-                                        const motherDetails = document.getElementById("motherDetails");
-                                        const updateMother = document.getElementById("updateMother");
-                                        const deleteMother = document.getElementById("deleteMother");
+                                const motherDetails = document.getElementById("motherDetails");
+                                const updateMother = document.getElementById("updateMother");
+                                const deleteMother = document.getElementById("deleteMother");
 
-                                        // Nastavení odkazů pro mother s ID mother
-                                        motherDetails.href = `motherDetails.html?mother_id=${hive.mother_id}`;
-                                        updateMother.href = `mothers.html?mother_id=${hive.mother_id}`;
-                                        deleteMother.href = ``;
+                                // Nastavení odkazů pro mother s ID mother
+                                motherDetails.href = `motherDetails.html?mother_id=${hive.mother_id}`;
+                                updateMother.href = `mothers.html?mother_id=${hive.mother_id}`;
+                                deleteMother.href = ``;
 
 
-                                        // Zobrazení kontextové nabídky na pozici myši
-                                        motherContextMenu.style.display = 'block';
-                                        motherContextMenu.style.top = `${event.pageY}px`;
-                                        motherContextMenu.style.left = `${event.pageX}px`;
-                                    });
+                                // Zobrazení kontextové nabídky na pozici myši
+                                motherContextMenu.style.display = 'block';
+                                motherContextMenu.style.top = `${event.pageY}px`;
+                                motherContextMenu.style.left = `${event.pageX}px`;
+                            });
                         }
 
                         // Kontextová nabídka po kliknutí pravým tlačítkem na úl
@@ -208,7 +321,7 @@
 
         // Načti data při načtení stránky
         window.onload = function () {
-            loadHivesWithBoxes();
+            locationsWithHives();
         };
 
         document.addEventListener("visibilitychange", function () {

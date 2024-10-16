@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,31 +8,39 @@
     <title>Box details</title>
 
 </head>
-<body>
-    <h1>Detaily Boxu</h1>
-    <div id="boxContainer"></div>
 
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <h1>Detaily Boxu</h1>
+        <div id="boxContainer"></div>
+    </div>
     <script>
         // Function to render box details
         function renderBox(box) {
             const container = document.getElementById('boxContainer');
-    
+
             // Create box element
             const boxElement = document.createElement('div');
             boxElement.classList.add('box');
-    
+
             // Create box header
             const boxHeader = document.createElement('div');
             boxHeader.classList.add('box-header');
             boxHeader.textContent = `Typ boxu: ${box.box_type}`;
             boxElement.appendChild(boxHeader);
-    
+
             // Create box year
             const boxYear = document.createElement('div');
             boxYear.classList.add('box-year');
             boxYear.textContent = `Rok vytvoření: ${box.box_year}`;
             boxElement.appendChild(boxYear);
-    
+
             // Render notes
             const boxNotes = document.createElement('div');
             boxNotes.classList.add('item');
@@ -46,10 +55,10 @@
             boxId.classList.add('box-id');
             boxId.textContent = `ID boxu: ${box.box_id}`;
             boxElement.appendChild(boxId);
-    
+
             container.appendChild(boxElement);
         }
-    
+
         // Function to fetch box data from the API
         async function fetchBoxDetails(boxId) {
             try {
@@ -57,7 +66,7 @@
                 if (!response.ok) {
                     throw new Error(`Error fetching box details: ${response.statusText}`);
                 }
-    
+
                 const boxData = await response.json();
                 renderBox(boxData);
             } catch (error) {
@@ -65,13 +74,13 @@
                 document.getElementById('boxContainer').innerText = 'Chyba při načítání dat.';
             }
         }
-    
+
         // Function to get box_id from the URL
         function getBoxIdFromUrl() {
             const params = new URLSearchParams(window.location.search);
             return params.get('box_id');
         }
-    
+
         // Get box_id from URL and fetch box details
         const boxId = getBoxIdFromUrl(); // Get box_id from URL
         if (boxId) {
@@ -81,4 +90,5 @@
         }
     </script>
 </body>
+
 </html>

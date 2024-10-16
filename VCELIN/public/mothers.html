@@ -12,38 +12,47 @@
 </head>
 
 <body>
-    <form id="motherForm">
 
-        <label for="mother_origin">Mother Origin:</label>
-        <select id="mother_origin" required>
-            <option value="" disabled selected>Select origin</option>
-            <option value="Výzkumný ústav">Výzkumný ústav</option>
-            <option value="Roj">Roj</option>
-            <option value="Vychovaná doma">Vychovaná doma</option>
-            <option value="Nákup od chovatele">Nákup od chovatele</option>
-        </select>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
 
-        <label for="mother_year">Year:</label>
-        <input type="number" id="mother_year" placeholder="Year" min="2000">
+    <div class="content">
 
-        <label for="mother_notes">Notes:</label>
-        <input type="text" id="mother_notes" placeholder="Notes" maxlength="200">
+        <form id="motherForm">
 
-        <label for="mother_hive_id">Hive:</label>
-        <select id="mother_hive_id">
-            <option value="" disabled selected>Select Hive</option>
-            <!-- Dynamicky se sem vloží data z databáze -->
-        </select>
+            <label for="mother_origin">Mother Origin:</label>
+            <select id="mother_origin" required>
+                <option value="" disabled selected>Select origin</option>
+                <option value="Výzkumný ústav">Výzkumný ústav</option>
+                <option value="Roj">Roj</option>
+                <option value="Vychovaná doma">Vychovaná doma</option>
+                <option value="Nákup od chovatele">Nákup od chovatele</option>
+            </select>
 
-        <button type="submit">Submit</button>
-    </form>
+            <label for="mother_year">Year:</label>
+            <input type="number" id="mother_year" placeholder="Year" min="2000">
 
-    <h1>Read All Records</h1>
+            <label for="mother_notes">Notes:</label>
+            <input type="text" id="mother_notes" placeholder="Notes" maxlength="200">
 
-    <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+            <label for="mother_hive_id">Hive:</label>
+            <select id="mother_hive_id">
+                <option value="" disabled selected>Select Hive</option>
+                <!-- Dynamicky se sem vloží data z databáze -->
+            </select>
 
-    <div id="results"></div>
+            <button type="submit">Submit</button>
+        </form>
 
+        <h1>Read All Records</h1>
+
+        <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+        <div id="results"></div>
+    </div>
     <script>
         document.getElementById("motherForm").addEventListener("submit", function (event) {
             event.preventDefault();
@@ -78,7 +87,7 @@
 
                     // Kontrola, zda nebude překročen limit 1 mother
                     if (currentMotherCount >= 1) {
-                        alert("This hive cannot have more than 1 mother.");
+                        alert("This hive " + selectedHive + " cannot have more than 1 mother.");
                         return false;  // Nepovolit přidání new mother
                     }
 

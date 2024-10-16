@@ -1,5 +1,12 @@
 body {
     font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.location {
+    border: 1px solid #000;
+    padding: 10px;
+    margin-bottom: 20px;
 }
 
 .hive-container {
@@ -60,4 +67,66 @@ body {
 
 .context-menu a:hover {
     background-color: #f2f2f2;
+}
+
+/* Horní panel */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #333;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Odkazy v panelu */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    display: inline-block;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Dropdown menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #575757;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+ /* Přizpůsobení zbytku stránky, aby obsah nezačínal pod navbar */
+ .content {
+    padding: 60px 20px; /* Přidá odsazení shora kvůli fixnímu panelu */
 }

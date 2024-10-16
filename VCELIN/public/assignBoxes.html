@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assign Boxes to a Hive</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
         .container {
             display: flex;
             justify-content: space-between;
@@ -18,7 +22,7 @@
             padding: 10px;
             box-sizing: border-box;
         }
-        
+
         .hive {
             width: 70%;
             border: 1px solid #ccc;
@@ -86,33 +90,72 @@
             padding-left: 20px;
             list-style-type: disc;
         }
+
+        /* Horní panel */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        /* Odkazy v panelu */
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            display: inline-block;
+        }
+
+        .navbar a:hover {
+            background-color: #575757;
+        }
+
+        /* Přizpůsobení zbytku stránky, aby obsah nezačínal pod navbar */
+        .content {
+            padding: 60px 20px;
+            /* Přidá odsazení shora kvůli fixnímu panelu */
+        }
     </style>
 </head>
 
 <body>
-
-    <h1>Assign Boxes to Hives</h1>
-
-    <!-- Kontejner pro boxy a hives vedle sebe -->
-    <div class="container">
-        <div class="box">
-            <h3>Available Boxes</h3>
-            <div class="list" id="boxesList">
-                <!-- Boxes se vypíší zde (s checkboxy) -->
-            </div>
-        </div>
-
-        <div class="hive">
-            <h3>Select Hive</h3>
-            <div class="list" id="hivesList">
-                <!-- Hives se vypíší zde (s radio buttony) -->
-            </div>
-        </div>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
     </div>
 
-    <br>
-    <button id="assignButton">Assign Boxes to Hive</button>
+    <div class="content">
 
+        <h1>Assign Boxes to Hives</h1>
+
+        <!-- Kontejner pro boxy a hives vedle sebe -->
+        <div class="container">
+            <div class="box">
+                <h3>Available Boxes</h3>
+                <div class="list" id="boxesList">
+                    <!-- Boxes se vypíší zde (s checkboxy) -->
+                </div>
+            </div>
+
+            <div class="hive">
+                <h3>Select Hive</h3>
+                <div class="list" id="hivesList">
+                    <!-- Hives se vypíší zde (s radio buttony) -->
+                </div>
+            </div>
+        </div>
+
+        <br>
+        <button id="assignButton">Assign Boxes to Hive</button>
+    </div>
     <script>
 
         // Načtení boxes

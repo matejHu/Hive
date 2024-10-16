@@ -59,3 +59,34 @@ h1 {
     color: #888;
     text-align: right;
 }
+
+/* Horní panel */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #333;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Odkazy v panelu */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    display: inline-block;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Přizpůsobení zbytku stránky, aby obsah nezačínal pod navbar */
+.content {
+    padding: 60px 20px; /* Přidá odsazení shora kvůli fixnímu panelu */
+}
