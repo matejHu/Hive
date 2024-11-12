@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware pro správu session
 app.use(session({
-    secret: 'your-secret-key', // Tento klíč musí být silný a tajný
+    secret: 
     resave: false,              // Session nebude znovu uložena, pokud se nezmění
     saveUninitialized: false,   // Session nebude vytvořena, dokud nebude upravena
     cookie: { secure: false }   // `secure: true` by mělo být použito pouze v HTTPS prostředí
@@ -22,11 +22,11 @@ app.use(session({
 
 // Připojení k PostgreSQL
 const pool = new Pool({
-    user: 'postgres', // tvůj PostgreSQL uživatelský účet
-    host: 'localhost',
-    database: 'mydatabase', // název databáze
-    password: 'pg1234gRes', // tvoje heslo
-    port: 5432,
+    user: 
+    host: 
+    database: 
+    password: 
+    port: 
 });
 
 // Zabezpečený registrační endpoint
