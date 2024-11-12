@@ -11,11 +11,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Připojení k PostgreSQL
 const pool = new Pool({
-    user: 'postgres', // tvůj PostgreSQL uživatelský účet
-    host: 'localhost',
-    database: 'mydatabase', // název databáze
-    password: 'pg1234gRes', // tvoje heslo
-    port: 5432,
+    user: 
+    host: 
+    database:
+    password: 
+    port: 
 });
 
 // POST do boxes
