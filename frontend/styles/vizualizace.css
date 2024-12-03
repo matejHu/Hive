@@ -1,0 +1,136 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+}
+
+.location {
+    border: 1px solid #000;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.hive-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.hive {
+    width: 100px;
+    border: 1px solid #000;
+    padding: 10px;
+    padding-bottom: 40px;
+    text-align: center;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    position: relative;
+}
+
+.box {
+    width: 80px;
+    height: 30px;
+    background-color: #f2c94c;
+    margin: 5px auto;
+    border: 1px solid #000;
+    display: flex;               /* Aktivuje Flexbox */
+    align-items: center;         /* Svislé zarovnání */
+    justify-content: center;     /* Vodorovné zarovnání */
+    text-align: center;          /* Zajistí zarovnání textu uvnitř boxu */
+}
+
+.mother {
+    position: absolute;
+    /* Absolutní pozicování v rámci rodiče */
+    bottom: 0;
+    /* Zarovná div s mother_id ke spodní části */
+    left: 0;
+    right: 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+
+}
+
+/* Kontextová nabídka */
+.context-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.context-menu a {
+    text-decoration: none;
+    color: black;
+    display: block;
+    padding: 5px;
+}
+
+.context-menu a:hover {
+    background-color: #f2f2f2;
+}
+
+/* Horní panel */
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: #333;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+/* Odkazy v panelu */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 14px 20px;
+    display: inline-block;
+}
+
+.navbar a:hover {
+    background-color: #575757;
+}
+
+/* Dropdown menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #333;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.dropdown-content a:hover {
+    background-color: #575757;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+ /* Přizpůsobení zbytku stránky, aby obsah nezačínal pod navbar */
+ .content {
+    padding: 60px 20px; /* Přidá odsazení shora kvůli fixnímu panelu */
+}

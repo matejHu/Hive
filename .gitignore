@@ -1,0 +1,17 @@
+# Ignorování složky
+node_modules/
+
+# Ignorování souboru
+.env
+
+# Ignorování všech souborů s příponou .log
+*.log
+
+# Ignore docker - compose, to zlepšit 
+docker-compose.yml
+
+# Ignorování adresářů začínajících na temp
+temp*/
+
+# Ignorování Dockerfile
+Dockerfile

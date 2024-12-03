@@ -1,0 +1,34 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 323B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/nginx:alpine
+#2 DONE 0.7s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/library/nginx:alpine@sha256:2140dad235c130ac861018a4e13a6bc8aea3a35f3a40e20c1b060d51a7efd250
+#4 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [2/2] COPY /root/vcelin/frontend /usr/share/nginx/html
+#6 ERROR: failed to calculate checksum of ref 94eb2182-9ae4-4f06-9e1f-8ad4bf45da60::gd0pknlkezoi1bklpzxugtjdv: "/root/vcelin/frontend": not found
+------
+ > [2/2] COPY /root/vcelin/frontend /usr/share/nginx/html:
+------
+Dockerfile:5
+--------------------
+   3 |     
+   4 |     # Zkopírování statických souborů z ./frontend do výchozí složky Nginx
+   5 | >>> COPY /root/vcelin/frontend /usr/share/nginx/html
+   6 |     
+   7 |     # Otevření portu 80
+--------------------
+ERROR: failed to solve: failed to compute cache key: failed to calculate checksum of ref 94eb2182-9ae4-4f06-9e1f-8ad4bf45da60::gd0pknlkezoi1bklpzxugtjdv: "/root/vcelin/frontend": not found

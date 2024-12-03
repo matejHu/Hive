@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/hives.css">
+    <title>Hives</title>
+
+</head>
+
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <h1>Hives</h1>
+
+        <!-- Formulář pro vytvoření nového úlu -->
+        <form id="hiveForm">
+            <input type="number" id="hive_year" placeholder="Enter Hive Year" required>
+            <input type="text" id="hive_name" placeholder="Enter Hive Name" required>
+            <label for="hive_location_id">Location:</label>
+            <select id="hive_location_id">
+                <option value="" disabled selected>Select location</option>
+                <!-- Dynamicky se sem vloží data z databáze -->
+            </select>
+            <button type="submit">Create Hive</button>
+        </form>
+
+        <h1>Read All Hives</h1>
+        <button id="loadButton" onclick="loadHives()">Load All Hives</button>
+
+        <div id="results"></div>
+    </div>
+    <script type="module" src="js/hives.js" defer></script>
+
+</body>
+
+</html>

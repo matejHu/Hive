@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/boxes.css">
+    <title>Boxes</title>
+
+</head>
+
+<body>
+
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+
+        <form id="boxForm">
+            <label for="box_type">Box Type:</label>
+            <select id="box_type" required>
+                <option value="" disabled selected>Select Box Type</option>
+                <option value="plodiště">Plodiště</option>
+                <option value="medník">Medník</option>
+            </select>
+
+            <label for="box_year">Year:</label>
+            <input type="number" id="box_year" placeholder="Year" min="2000">
+
+            <label for="box_notes">Notes:</label>
+            <input type="text" id="box_notes" placeholder="Notes" maxlength="200">
+
+            <label for="box_hive_id">Hive:</label>
+            <select id="box_hive_id">
+                <option value="" disabled selected>Select Hive</option>
+                <!-- Dynamicky se sem vloží data z databáze -->
+            </select>
+
+            <button type="submit">Create new box</button>
+        </form>
+
+        <h1>Read All Records</h1>
+
+        <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+        <div id="results"></div>
+    </div>
+    <script type="module" src="js/boxes.js"></script>
+
+</body>
+
+</html>

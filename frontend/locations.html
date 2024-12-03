@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/locations.css">
+    <title>Locations CRD</title>
+
+</head>
+
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <h1>Locations CRD</h1>
+
+        <!-- Formulář pro vytvoření nové lokace -->
+        <form id="locationForm">
+            <input type="text" id="location_name" placeholder="Enter location Name" required>
+            <button type="submit">Create Location</button>
+        </form>
+
+        <h1>Read All Locations</h1>
+        <button id="loadButton" onclick="loadLocations()">Load All Locations</button>
+
+        <div id="results"></div>
+    </div>
+    <script type="module" src="js/locations.js"></script>
+
+</body>
+
+</html>

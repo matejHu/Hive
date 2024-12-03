@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/checkups.css">
+    <title>Checkups CRD</title>
+
+</head>
+
+<body>
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+        <form id="checkupForm">
+            <label for="checkup_type">Checkup Type:</label>
+            <select id="checkup_type" required>
+                <option value="" disabled selected>Select type</option>
+                <option value="Jarní">Jarní</option>
+                <option value="Letní">Letní</option>
+                <option value="Podzimní">Podzimní</option>
+                <option value="Zimní">Zimní</option>
+            </select>
+
+            <label for="checkup_flyby">Flyby Level:</label>
+            <select id="checkup_flyby" required>
+                <option value="" disabled selected>Select flyby</option>
+                <option value="nízký">Nízký</option>
+                <option value="střední">Střední</option>
+                <option value="vysoký">Vysoký</option>
+            </select>
+
+            <label for="checkup_date">Checkup Date:</label>
+            <input type="date" id="checkup_date" placeholder="Date">
+
+            <label for="checkup_note">Note:</label>
+            <input type="text" id="checkup_note" placeholder="Note" maxlength="200">
+
+            <label for="checkup_hive_id">Hive:</label>
+            <select id="checkup_hive_id">
+                <option value="" disabled selected>Select Hive</option>
+                <!-- Dynamicky se sem vloží data z databáze -->
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <h1>Read All Records</h1>
+
+        <button id="loadButton" onclick="loadRecords()">Load All Records</button>
+
+        <div id="results"></div>
+    </div>
+    <script type="module" src="js/checkups.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/mothers.css">
+    <title>Mothers CRD</title>
+
+</head>
+
+</head>
+
+<body>
+
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+    </div>
+
+    <div class="content">
+
+        <form id="motherForm">
+
+            <label for="mother_origin">Mother Origin:</label>
+            <select id="mother_origin" required>
+                <option value="" disabled selected>Select origin</option>
+                <option value="Výzkumný ústav">Výzkumný ústav</option>
+                <option value="Roj">Roj</option>
+                <option value="Vychovaná doma">Vychovaná doma</option>
+                <option value="Nákup od chovatele">Nákup od chovatele</option>
+            </select>
+
+            <label for="mother_year">Year:</label>
+            <input type="number" id="mother_year" placeholder="Year" min="2000">
+
+            <label for="mother_notes">Notes:</label>
+            <input type="text" id="mother_notes" placeholder="Notes" maxlength="200">
+
+            <label for="mother_hive_id">Hive:</label>
+            <select id="mother_hive_id">
+                <option value="" disabled selected>Select Hive</option>
+                <!-- Dynamicky se sem vloží data z databáze -->
+            </select>
+
+            <button type="submit">Submit</button>
+        </form>
+
+        <h1>Read All Records</h1>
+
+        <button id="loadButton">Load All Records</button>
+
+        <div id="results"></div>
+    </div>
+    <script type="module" src="js/mothers.js" defer></script>
+
+</body>
+
+</html>

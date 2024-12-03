@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/vizualizace.css">
+    <title>Hive Visualization</title>
+
+</head>
+
+<body>
+
+    <!-- Horní panel -->
+    <div class="navbar">
+        <a href="vizualizace.html">Vizualizace</a>
+        <a href="readme.html">Pomoc</a>
+
+
+        <!-- Dropdown menu -->
+        <div class="dropdown">
+            <a href="#menu">Menu</a>
+            <div class="dropdown-content">
+                <a href="hives.html" >Create new hive</a>
+                <a href="assignBoxes.html" >Assign boxes to hives</a>
+                <a href="locations.html" >Create new location</a>
+            </div>
+        </div>
+        <a href="#" id="authLink"></a>
+    </div>
+
+    <div class="content">
+        <h1>Hive Visualization</h1>
+
+        <div class="location-container" id="locationContainer">
+            <div class="hive-container" id="hiveContainer">
+                <!-- Úly se zobrazí zde -->
+            </div>
+        </div>
+
+        <!-- Kontextová nabídka pro lokace -->
+        <div id="locationContextMenu" class="context-menu">
+            <a href="#" id="addHive">Přidat úl</a>
+            <a href="#" id="upgradeLocation">Upravit lokaci</a>
+            <a href="#" id="locationDetail">Detaily lokace</a>
+            <a href="#" id="deleteLocation">Smazat lokaci</a>
+        </div>
+
+        <!-- Kontextová nabídka pro úly -->
+        <div id="hiveContextMenu" class="context-menu">
+            <a href="#" id="addCheckupLink">Přidat checkup</a>
+            <a href="#" id="addMotherLink">Přidat mother</a>
+            <a href="#" id="addBoxLink">Přidat box</a>
+            <a href="#" id="hiveDetails">Zobrazit detaily</a>
+            <a href="#" id="hiveUpdate">Upravit data</a>
+            <a href="#" id="hiveCheckups">Záznamy kontrol</a>
+            <a href="#" id="hiveDelete">Smazat úl</a>
+            <a href="#" id="hiveqr">QR kod</a>
+        </div>
+
+        <!-- Kontextová nabídka pro boxy -->
+        <div id="boxContextMenu" class="context-menu">
+            <a href="#" id="boxDetailsLink">Zobrazit detaily</a>
+            <a href="#" id="moveBoxLink">Přesunout box</a>
+            <a href="#" id="deleteBoxLink">Smazat box</a>
+            <a href="#" id="productionRecord">Záznam produkce</a>
+            <a href="#" id="boxUpdate">Upravit data</a>
+            <a href="#" id="qrbox">QR kod</a>
+        </div>
+
+        <!-- Kontextová nabídka pro matky -->
+        <div id="motherContextMenu" class="context-menu">
+            <a href="#" id="motherDetail">Zobrazit detaily</a>
+            <a href="#" id="updateMother">Upravit data</a>
+            <a href="#" id="deleteMother">Smazat mother</a>
+        </div>
+    </div>
+    <script type="module" src="js/vizualizace.js"></script>
+
+</body>
+
+</html>
